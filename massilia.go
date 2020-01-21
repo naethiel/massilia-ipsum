@@ -2,29 +2,31 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
+	"net/http"
 	"strings"
 	"time"
 )
 
 var beginnings = []string{
-	"Vé ",
-	"Hey ",
-	"Minot ",
-	"Peuchère ",
-	"Ma foi ",
-	"Fada ",
-	"Ho Gàrri ",
-	"Oh tronche d'Àpi ",
-	"Doumé ",
-	"Parles meilleur ",
-	"Fatche de… ",
-	"Zou ",
-	"Méfi ",
-	"Tronche-plate ",
-	"Stàssi ",
-	"Arretes de marronner de longue ",
-	"Bonne mère ",
+	"Vé,",
+	"Hey,",
+	"Minot,",
+	"Peuchère,",
+	"Ma foi,",
+	"Fada,",
+	"Ho Gàrri,",
+	"Oh tronche d'Àpi,",
+	"Doumé,",
+	"Parles meilleur,",
+	"Fatche de…,",
+	"Zou,",
+	"Méfi,",
+	"Tronche-plate,",
+	"Stàssi,",
+	"Arretes de marronner de longue,",
+	"Bonne mère,",
 }
 
 var expressions = []string{
@@ -43,34 +45,34 @@ var expressions = []string{
 	"tu boulègues",
 	"tu vas t’estramasser",
 	"tu me gaves ",
-	"elle a la scoumoune ",
+	"elle a la scoumoune",
 	"tu me nifles!",
 	"il a une figuane de gobi",
 	"j'ai eu nibe",
-	"il a pris un taquet ",
+	"il a pris un taquet",
 	"j’ai quillé le ballon",
 	"je me suis gagué",
 	"j'ai passé la pièce car c'était tout pègant",
 }
 
 var endings = []string{
-	" avec ton straou.",
-	" au vélodrome.",
-	" à Endoume.",
-	" au cabanon.",
-	" dans le teston.",
-	" du jaune.",
-	" du pastaga",
-	" dans le cabestron.",
-	" ça sent l'aïoli.",
-	" avec ta figure de poulpe.",
-	" avec tes oursins dans les poches.",
-	", c'est une une belle de cagade.",
-	" une soupe d'esques et te jeter aux goudes. ",
-	" dans la Gineste.",
-	" comme ce pébron de papé.",
-	" sur la Corniche.",
-	" devant tous ses collègues.",
+	"avec ton straou.",
+	"au vélodrome.",
+	"à Endoume.",
+	"au cabanon.",
+	"dans le teston.",
+	"du jaune.",
+	"du pastaga.",
+	"dans le cabestron.",
+	"ça sent l'aïoli.",
+	"avec ta figure de poulpe.",
+	"avec tes oursins dans les poches.",
+	", c'est une belle de cagade.",
+	"une soupe d'esques et te jeter aux goudes. ",
+	"dans la Gineste.",
+	"comme ce pébron de papé.",
+	"sur la Corniche.",
+	"devant tous ses collègues.",
 	", c’est une trompette.",
 	", c'est le ouaille.",
 	", c'est une vraie arapède.",
@@ -80,34 +82,53 @@ var endings = []string{
 	", c'est une bouche.",
 }
 
-func randomizeList(list []string) []string {
-	shuffled := list
+func generate(count int) string {
 	rand.Seed(time.Now().UnixNano())
 
-	// randomize an array
-	rand.Shuffle(len(list), func(i, j int) {
-		tmp := list[i]
-		list[i] = list[j]
-		list[j] = tmp
-	})
+	beginningsIdx := rand.Perm(len(beginnings))
+	expressionsIdx := rand.Perm(len(expressions))
+	endingsIdx := rand.Perm(len(endings))
 
-	return shuffled
+	var p strings.Builder
+
+	for i := 0; i < count; i++ {
+		p.WriteString(beginnings[beginningsIdx[i%len(beginningsIdx)]])
+		p.WriteRune(' ')
+		p.WriteString(expressions[expressionsIdx[i%len(expressionsIdx)]])
+
+		if endings[endingsIdx[i]][0:1] != "," {
+			p.WriteRune(' ')
+		}
+
+		p.WriteString(endings[endingsIdx[i]])
+
+		if i != count-1 {
+			p.WriteRune(' ')
+		}
+	}
+
+	return p.String()
 }
 
-func buildSentence(e []string) string {
-	return strings.Join(e, "")
+func requestHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: generating ipsum...")
+	var p = r.URL.Query()
+
+	length := p.Get("length")
+	generated := generateParagraphs(length)
+}
+
+func generateParagraphs(count int) []string {
+	var result []string
+
+	for i := 0; i < count; i++ {
+		result = append(result, generate(5))
+	}
+
+	return result
 }
 
 func main() {
-	amount := 15
-	shuffledBeginnings := randomizeList(beginnings)
-	shuffledExpressions := randomizeList(expressions)
-	shuffledEndings := randomizeList(endings)
-
-	for i := 0; i < amount; i++ {
-		exprs := []string{shuffledBeginnings[i], shuffledExpressions[i], shuffledEndings[i]}
-		fmt.Println(buildSentence(exprs))
-	}
-
-	fmt.Println(beginnings)
+	http.HandleFunc("/", requestHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
