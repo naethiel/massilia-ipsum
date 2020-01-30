@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -110,25 +111,50 @@ func generate(count int) string {
 	return p.String()
 }
 
-func requestHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Endpoint Hit: generating ipsum...")
-	var p = r.URL.Query()
-
-	length := p.Get("length")
-	generated := generateParagraphs(length)
+type response struct {
+  Data []string `json:"data"`
 }
 
-func generateParagraphs(count int) []string {
-	var result []string
+func requestHandler(w http.ResponseWriter, r *http.Request) {
+  length, err := strconv.Atoi(r.FormValue("length"))
+  size := r.FormValue("size")
 
-	for i := 0; i < count; i++ {
-		result = append(result, generate(5))
-	}
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
 
-	return result
+	p := generateParagraphs(length, size)
+  var res response
+  
+  res.Data = p
+
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(http.StatusOK)
+  json.NewEncoder(w).Encode(res)
+}
+
+func generateParagraphs(count int, size string) []string {
+  var result []string
+  sentences := 7
+
+  switch size {
+    case "small":
+      sentences = 3
+    case "medium":
+      sentences = 7
+    case "large":
+      sentences = 12
+  }
+
+  for i := 0; i < count; i++ {
+    result = append(result, generate(sentences))
+  }
+
+  return result
 }
 
 func main() {
-	http.HandleFunc("/", requestHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+  http.HandleFunc("/", requestHandler)
+  log.Fatal(http.ListenAndServe(":8080", nil))
 }
