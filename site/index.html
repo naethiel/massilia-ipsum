@@ -33,7 +33,7 @@
 
         try {
           return await fetch(
-            `http://localhost:8080/generate?length=${FD.get(
+            `http://localhost:9090/api?length=${FD.get(
               "length"
             )}&size=${FD.get("size")}`
           ).then(r => r.json());
