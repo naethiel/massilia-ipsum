@@ -112,49 +112,56 @@ func generate(count int) string {
 }
 
 type response struct {
-  Data []string `json:"data"`
+	Data []string `json:"data"`
 }
 
 func requestHandler(w http.ResponseWriter, r *http.Request) {
-  length, err := strconv.Atoi(r.FormValue("length"))
-  size := r.FormValue("size")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusBadRequest)
-    return
-  }
+	if r.Method != "GET" {
+		http.Error(w, "Bad request", http.StatusMethodNotAllowed)
+		return
+	}
+
+	length, err := strconv.Atoi(r.FormValue("length"))
+	size := r.FormValue("size")
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	p := generateParagraphs(length, size)
-  var res response
-  
-  res.Data = p
+	var res response
 
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(http.StatusOK)
-  json.NewEncoder(w).Encode(res)
+	res.Data = p
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
 }
 
 func generateParagraphs(count int, size string) []string {
-  var result []string
-  sentences := 7
+	var result []string
+	sentences := 7
 
-  switch size {
-    case "small":
-      sentences = 3
-    case "medium":
-      sentences = 7
-    case "large":
-      sentences = 12
-  }
+	switch size {
+	case "small":
+		sentences = 3
+	case "medium":
+		sentences = 7
+	case "large":
+		sentences = 12
+	}
 
-  for i := 0; i < count; i++ {
-    result = append(result, generate(sentences))
-  }
+	for i := 0; i < count; i++ {
+		result = append(result, generate(sentences))
+	}
 
-  return result
+	return result
 }
 
 func main() {
-  http.HandleFunc("/", requestHandler)
-  log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/generate", requestHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
