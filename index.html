@@ -1,51 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta
+      name="description"
+      content="Générateur de lorem ipsum qui sent bon le pastaga"
+    />
+    <meta
+      name="keywords"
+      content="Massilia, lorem ipsum, generator, générateur"
+    />
+    <meta name="author" content="Nico & KA" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <title>Massilia Ipsum</title>
-    <script>
-      async function handleSubmit(e) {
-        e.preventDefault();
-
-        await getSentences();
-      }
-
-      async function getSentences() {
-        const content = await generate();
-
-        const container = document.querySelector("#output");
-
-        container.innerHTML = "";
-
-        content.data.forEach(paragraph => {
-          let p = document.createElement("p");
-          p.innerHTML = paragraph;
-
-          container.appendChild(p);
-        });
-      }
-
-      async function generate() {
-        const FD = new FormData(document.querySelector("#form"));
-
-        try {
-          return await fetch(
-            `http://localhost:9090/api?length=${FD.get(
-              "length"
-            )}&size=${FD.get("size")}`
-          ).then(r => r.json());
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
-      window.addEventListener("load", async function() {
-        await getSentences();
-      });
-    </script>
+    <script src="scripts.js" type="text/javascript"></script>
   </head>
   <body>
     <header>
@@ -63,12 +34,15 @@
             <input type="number" name="length" value="5" />
           </div>
           <div id="size-input">
-            <input type="radio" name="size" value="small" />
-            <label for="small">petit</label>
-            <input type="radio" name="size" value="medium" checked />
-            <label for="medium">moyen</label>
-            <input type="radio" name="size" value="large" />
-            <label for="large">grand</label>
+            <label for="small">
+              <input type="radio" name="size" value="small" /> petit
+            </label>
+            <label for="medium">
+              <input type="radio" name="size" value="medium" checked /> moyen
+            </label>
+            <label for="large">
+              <input type="radio" name="size" value="large" /> grand
+            </label>
           </div>
           <button type="submit">Générer</button>
         </form>
@@ -106,7 +80,7 @@
     </section>
     <footer>
       <img src="assets/pastaga.svg" alt="pastaga" />
-      <p>
+      <p class="container">
         Code par Nico - Design par KA
       </p>
     </footer>
